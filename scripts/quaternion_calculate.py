@@ -80,13 +80,13 @@ def turn_TCP_axs_rad_len(position,axs,rad,len):
     return matrix2quat(np.dot(quat2matrix(position),Tmat))
 
 
-def quat2angle(quat):
+def quat2angle(quat):#没用
     q1=2*(quat[3]*quat[4]+ quat[6]*quat[5])
     q2=quat[6]**2 + quat[3]**2 - quat[4]**2 - quat[5]**2
     q3=-2*(quat[3]*quat[5]- quat[6]*quat[4])
     q4=2*(quat[4]*quat[5]+ quat[6]*quat[3])
     q5=quat[6]**2 - quat[3]**2 - quat[4]**2 + quat[5]**2
-    return (quat[0]*1000,quat[1]*1000,quat[2]*1000,math.atan2(q1,q2),math.asin(q3),math.atan2(q4,q5))
+    return (quat[0],quat[1],quat[2],math.atan2(q1,q2),math.asin(q3),math.atan2(q4,q5))
 
 
 if __name__ == '__main__':
