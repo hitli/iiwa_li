@@ -105,7 +105,7 @@ fid=fopen('/home/lizq/win7share/TMO.txt','wt');%改为你自己文件的位置
 for i=1:m
    for j=1:n
      if j==n
-        fprintf(fid,'%f,\n',double(TMO(i,j)));
+        fprintf(fid,'%f\n',double(TMO(i,j)));
      else
         fprintf(fid,'%f,',double(TMO(i,j))); 
      end
@@ -115,32 +115,33 @@ fclose(fid);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%机械臂基座“J”与末端TCP“O”的齐次变换矩阵%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%读取四元数转换为旋转矩阵，m-->mm%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 x=TCP(1,4);y=TCP(1,5);z=TCP(1,6);w=TCP(1,7);
 TJO(4,1)=0;TJO(4,2)=0;TJO(4,3)=0;TJO(4,4)=1;
-TJO(1,:)=[2*(w*w+x*x)-1,2*(x*y-w*z) , 2*(x*z+w*y),TCP(1,1)*1000];
+TJO(1,:)=[2*(w*w+x*x)-1 , 2*(x*y-w*z) , 2*(x*z+w*y) , TCP(1,1)*1000];
 TJO(2,:)=[2*(x*y+w*z) , 2*(w*w+y*y)-1 , 2*(y*z-w*x) , TCP(1,2)*1000];
 TJO(3,:)=[2*(x*z-w*y) , 2*(y*z+w*x) , 2*(w*w+z*z)-1 , TCP(1,3)*1000];
+
 fid=fopen('/home/lizq/win7share/TJO.txt','wt');%改为你自己文件的位置
 [m,n]=size(TJO);
 for i=1:m
    for j=1:n
      if j==n
-        fprintf(fid,'%f,\n',double(TJO(i,j)));
+        fprintf(fid,'%f\n',double(TJO(i,j)));
      else
         fprintf(fid,'%f,',double(TJO(i,j))); 
      end
    end
 end
 fclose(fid);
-input_mattrix=TJO*(inv(TMO));
-TJM=input_mattrix;
+
+TJM=TJO/TMO;%TJO*inv(TMO)
 fid=fopen('/home/lizq/win7share/TJM.txt','wt');%改为你自己文件的位置
 [m,n]=size(TJM);
 for i=1:m
    for j=1:n
      if j==n
-        fprintf(fid,'%f,\n',double(TJM(i,j)));
+        fprintf(fid,'%f\n',double(TJM(i,j)));
      else
         fprintf(fid,'%f,',double(TJM(i,j))); 
      end
@@ -148,39 +149,24 @@ for i=1:m
 end
 fclose(fid);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%由NDI求TMB%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Rx=NDI(1,4)*pi/180;Ry=NDI(1,5)*pi/180;Rz=NDI(1,6)*pi/180;
-TMB(1,4)=NDI(1,1);TMB(2,4)=NDI(1,2);TMB(3,4)=NDI(1,3);TMB(4,4)=1;TMB(4,1)=0;TMB(4,2)=0;TMB(4,3)=0;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%由NDI求TMB继而得到TOB%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%四元数转旋转矩阵,第一行为449被动刚体%%%%%%%%%%%%%%%%%%
+x=NDI(1,4);y=NDI(1,5);z=NDI(1,6);w=NDI(1,7);
+TMB(4,1)=0;TMB(4,2)=0;TMB(4,3)=0;TMB(4,4)=1;
+TMB(1,:)=[2*(w*w+x*x)-1 , 2*(x*y-w*z) , 2*(x*z+w*y) , TCP(1,1)];
+TMB(2,:)=[2*(x*y+w*z) , 2*(w*w+y*y)-1 , 2*(y*z-w*x) , TCP(1,2)];
+TMB(3,:)=[2*(x*z-w*y) , 2*(y*z+w*x) , 2*(w*w+z*z)-1 , TCP(1,3)];
 
-TMB(1,1)=cos(Rz)*cos(Ry);TMB(1,2)=cos(Rz)*sin(Ry)*sin(Rx)-sin(Rz)*cos(Rx);TMB(1,3)=cos(Rz)*sin(Ry)*cos(Rx)+sin(Rz)*sin(Rx);
-TMB(2,1)=sin(Rz)*cos(Ry);TMB(2,2)=sin(Rz)*sin(Ry)*sin(Rx)+cos(Rz)*cos(Rx);TMB(2,3)=sin(Rz)*sin(Ry)*cos(Rx)-cos(Rz)*sin(Rx);
-TMB(3,1)=-sin(Ry);TMB(3,2)=cos(Ry)*sin(Rx);TMB(3,3)=cos(Ry)*cos(Rx);
-
-TOB=inv(TMO)*TMB;
-TBO=inv(TOB);
-
+TOB=TMO\TMB;%inv(TMO)*TMB
 fid=fopen('/home/lizq/win7share/TOB.txt','wt');%改为你自己文件的位置
 [m,n]=size(TOB);
 for i=1:m
    for j=1:n
      if j==n
-        fprintf(fid,'%f,\n',double(TOB(i,j)));
+        fprintf(fid,'%f\n',double(TOB(i,j)));
      else
         fprintf(fid,'%f,',double(TOB(i,j))); 
      end
    end
 end
 fclose(fid);
-
-% fid=fopen('D:\TBO.txt','wt');%改为你自己文件的位置
-% [m,n]=size(TBO);
-% for i=1:m
-%    for j=1:n
-%      if j==n
-%         fprintf(fid,'%f,\n',double(TBO(i,j)));
-%      else
-%         fprintf(fid,'%f,',double(TBO(i,j))); 
-%      end
-%    end
-% end
-% fclose(fid);
